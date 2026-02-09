@@ -1,92 +1,207 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Recommender System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>MovieRec - Discover Your Next Favorite Movie</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols-Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f59f0a",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221c10",
+                    },
+                    fontFamily: {
+                        "display": ["Be Vietnam Pro"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #0f172a;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #ffffff, #f59f0a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-brand">🎬 Movie Recommender</div>
-        <div class="nav-links">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('popular_movies') }}">Popular</a>
-            <a href="{{ url_for('browse_movies') }}">Browse All</a>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-200 min-h-screen selection:bg-primary/30 overflow-x-hidden">
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between glass px-6 py-3 rounded-xl">
+            <div class="flex items-center gap-2">
+                <span class="material-icons text-primary text-3xl">movie_filter</span>
+                <span class="text-xl font-bold tracking-tight text-white">Movie<span class="text-primary">Rec</span></span>
+            </div>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="{{ url_for('index') }}" class="text-sm font-medium hover:text-primary transition-colors text-slate-300">Home</a>
+                <a href="{{ url_for('popular_movies') }}" class="text-sm font-medium hover:text-primary transition-colors text-slate-300">Popular</a>
+                <a href="{{ url_for('browse_movies') }}" class="text-sm font-medium hover:text-primary transition-colors text-slate-300">Browse</a>
+            </div>
         </div>
     </nav>
-
-    <div class="container">
-        <header class="hero">
-            <h1>🎬 Discover Your Next Favorite Movie</h1>
-            <p>Get personalized movie recommendations based on what you love!</p>
-        </header>
-
-        <section class="search-section">
-            <h2>Find Similar Movies</h2>
-            <form action="{{ url_for('recommend') }}" method="POST" class="search-form">
-                <div class="form-group">
-                    <label for="movie">Select a movie you like:</label>
-                    <select name="movie" id="movie" required>
+    
+    <!-- Hero Section -->
+    <main class="relative z-10 pt-32 pb-20 px-6 flex flex-col items-center justify-center text-center">
+        <div class="max-w-4xl mx-auto">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold mb-6 tracking-wide uppercase">
+                <span class="material-icons text-xs">auto_awesome</span>
+                AI-Powered Recommendations
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight leading-tight">
+                <span class="text-gradient">Discover Your Next</span><br/>
+                <span class="text-white">Favorite Movie</span>
+            </h1>
+            <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-12">
+                Personalized suggestions powered by collaborative filtering, tailored to your unique taste.
+            </p>
+            
+            <!-- Search Form -->
+            <form action="{{ url_for('recommend') }}" method="POST" class="w-full max-w-2xl mx-auto relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-primary/50 to-amber-600/50 rounded-xl blur opacity-25 group-focus-within:opacity-50 transition duration-1000 group-focus-within:duration-200"></div>
+                <div class="relative flex items-center glass rounded-xl overflow-hidden p-2">
+                    <span class="material-icons text-slate-400 ml-4">search</span>
+                    <select name="movie" id="movie" required class="w-full bg-transparent border-none text-white placeholder:text-slate-500 focus:ring-0 py-4 px-4 text-lg">
                         <option value="">-- Choose a Movie --</option>
                         {% for movie in movies %}
                         <option value="{{ movie }}">{{ movie }}</option>
                         {% endfor %}
                     </select>
-                </div>
-                <div class="form-group">
-                    <label for="n">Number of recommendations:</label>
-                    <select name="n" id="n">
-                        <option value="5">5 movies</option>
-                        <option value="10" selected>10 movies</option>
-                        <option value="15">15 movies</option>
-                        <option value="20">20 movies</option>
+                    <select name="n" id="n" class="bg-transparent border-none text-white focus:ring-0 py-4 px-4 text-lg">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
                     </select>
+                    <button type="submit" class="bg-primary hover:bg-primary/90 text-background-dark font-bold px-8 py-3 rounded-lg transition-all hidden sm:block">
+                        Find
+                    </button>
                 </div>
-                <button type="submit" class="btn-primary">Get Recommendations</button>
+                <button type="submit" class="mt-4 w-full bg-primary hover:bg-primary/90 text-background-dark font-bold px-8 py-3 rounded-lg transition-all sm:hidden">
+                    Find Recommendations
+                </button>
             </form>
-        </section>
-
-        <section class="popular-section">
-            <h2>🔥 Most Popular Movies</h2>
-            <div class="movie-grid">
+        </div>
+        
+        <!-- Feature Cards -->
+        <div class="max-w-7xl mx-auto mt-32 grid grid-cols-1 md:grid-cols-3 gap-8 w-full">
+            <a href="{{ url_for('recommend') }}" class="glass p-8 rounded-xl group hover:border-primary/50 transition-all cursor-pointer flex flex-col items-center text-center">
+                <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+                    <span class="material-icons text-primary text-3xl">psychology</span>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">For You</h3>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Get custom movie recommendations based on movies you love.
+                </p>
+                <div class="mt-auto flex items-center text-primary text-sm font-semibold gap-1 hover:gap-2 transition-all">
+                    Explore <span class="material-icons text-sm">arrow_forward</span>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('popular_movies') }}" class="glass p-8 rounded-xl group hover:border-primary/50 transition-all cursor-pointer flex flex-col items-center text-center">
+                <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+                    <span class="material-icons text-primary text-3xl">trending_up</span>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">Trending</h3>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Stay up to date with the most popular movies based on user ratings.
+                </p>
+                <div class="mt-auto flex items-center text-primary text-sm font-semibold gap-1 hover:gap-2 transition-all">
+                    See What's Hot <span class="material-icons text-sm">arrow_forward</span>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('browse_movies') }}" class="glass p-8 rounded-xl group hover:border-primary/50 transition-all cursor-pointer flex flex-col items-center text-center">
+                <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+                    <span class="material-icons text-primary text-3xl">grid_view</span>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">Library</h3>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Browse our database of over 1,600 films across all eras and genres.
+                </p>
+                <div class="mt-auto flex items-center text-primary text-sm font-semibold gap-1 hover:gap-2 transition-all">
+                    Browse All <span class="material-icons text-sm">arrow_forward</span>
+                </div>
+            </a>
+        </div>
+        
+        <!-- Popular Movies Section -->
+        <div class="max-w-4xl mx-auto mt-20 w-full">
+            <h2 class="text-3xl font-bold text-white mb-8 text-center">🔥 Trending Now</h2>
+            <div class="glass rounded-xl overflow-hidden">
                 {% for movie in popular %}
-                <div class="movie-card">
-                    <h3>{{ movie.title }}</h3>
-                    <div class="movie-stats">
-                        <span class="rating">⭐ {{ movie.rating }}</span>
-                        <span class="count">{{ movie.num_ratings }} ratings</span>
+                <div class="flex items-center gap-4 p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+                        #{{ loop.index }}
+                    </div>
+                    <div class="flex-1 min-w-0 text-left">
+                        <h4 class="text-white font-semibold truncate">{{ movie.title }}</h4>
+                    </div>
+                    <div class="flex items-center gap-4 flex-shrink-0">
+                        <div class="flex items-center gap-1 text-primary">
+                            <span class="material-icons text-sm">star</span>
+                            <span class="font-bold">{{ movie.rating }}</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-slate-400">
+                            <span class="material-icons text-sm">reviews</span>
+                            <span class="text-sm">{{ movie.num_ratings }}</span>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-        </section>
-
-        <section class="info-section">
-            <h2>How It Works</h2>
-            <div class="info-grid">
-                <div class="info-card">
-                    <div class="icon">📊</div>
-                    <h3>Analyze</h3>
-                    <p>We analyze ratings from thousands of users to find patterns.</p>
+        </div>
+    </main>
+    
+    <!-- Footer Stats -->
+    <footer class="mt-auto py-12 px-6 border-t border-white/5 relative z-10">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="flex items-center gap-12">
+                <div class="text-center md:text-left">
+                    <div class="text-2xl font-bold text-white">1,600+</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-widest">Movies</div>
                 </div>
-                <div class="info-card">
-                    <div class="icon">🔗</div>
-                    <h3>Correlate</h3>
-                    <p>We find movies that are frequently enjoyed together.</p>
+                <div class="text-center md:text-left">
+                    <div class="text-2xl font-bold text-white">100K+</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-widest">Reviews</div>
                 </div>
-                <div class="info-card">
-                    <div class="icon">🎯</div>
-                    <h3>Recommend</h3>
-                    <p>You get personalized recommendations instantly!</p>
+                <div class="text-center md:text-left">
+                    <div class="text-2xl font-bold text-white">940+</div>
+                    <div class="text-xs text-slate-500 uppercase tracking-widest">Users</div>
                 </div>
             </div>
-        </section>
-    </div>
-
-    <footer>
-        <p>Movie Recommender System | Based on Item-Based Collaborative Filtering</p>
+            <div class="text-slate-500 text-sm">
+@ 2026 MovieRec. All rights reserved.
+            </div>
+        </div>
     </footer>
+    
+    <!-- Bottom Decorative Glow -->
+    <div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-64 bg-primary/10 blur-[120px] rounded-full pointer-events-none -z-10"></div>
 </body>
 </html>
 

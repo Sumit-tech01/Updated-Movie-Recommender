@@ -1,32 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error - Movie Recommender</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Error - MovieRec</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f59f0a",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221c10",
+                        "slate-custom": "#1a160f",
+                    },
+                    fontFamily: {
+                        "display": ["Be Vietnam Pro", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: "Be Vietnam Pro", sans-serif; }
+    </style>
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-brand">🎬 Movie Recommender</div>
-        <div class="nav-links">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('popular_movies') }}">Popular</a>
-            <a href="{{ url_for('browse_movies') }}">Browse All</a>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex items-center justify-center overflow-hidden font-display">
+    <!-- Main Content Container -->
+    <main class="relative z-10 container mx-auto px-6 flex flex-col items-center text-center">
+        <!-- Error Icon -->
+        <div class="mb-10 relative group">
+            <div class="absolute -inset-4 bg-primary/20 blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div class="relative flex flex-col items-center">
+                <div class="w-48 h-36 bg-primary rounded-xl flex flex-col items-center justify-center p-4 shadow-2xl">
+                    <span class="material-icons text-white text-6xl opacity-90">warning</span>
+                </div>
+            </div>
         </div>
-    </nav>
-
-    <div class="container">
-        <div class="error-page">
-            <div class="error-icon">⚠️</div>
-            <h1>Oops! Something went wrong</h1>
-            <p>{{ message }}</p>
-            <a href="{{ url_for('index') }}" class="btn-primary">Back to Home</a>
+        
+        <!-- Typography Section -->
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-4">
+                <span class="text-primary">Oops!</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-400 font-light mb-8">
+                {{ message }}
+            </p>
+            
+            <!-- Navigation Actions -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="{{ url_for('index') }}" class="group relative px-8 py-4 bg-gradient-to-r from-primary to-orange-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300 transform hover:-translate-y-1 w-full sm:w-auto">
+                    <span class="flex items-center justify-center">
+                        <span class="material-icons mr-2">home</span>
+                        Back to Home
+                    </span>
+                </a>
+            </div>
         </div>
-    </div>
-
-    <footer>
-        <p>Movie Recommender System</p>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="absolute bottom-0 w-full py-6 border-t border-white/5 z-10">
+        <div class="text-center text-slate-500 text-sm">
+@ 2026 MovieRec. All rights reserved.
+        </div>
     </footer>
 </body>
 </html>

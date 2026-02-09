@@ -1,49 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Popular Movies - Movie Recommender</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Top Rated Movies - MovieRec</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols-Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f59f0a",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#0d0c0b",
+                    },
+                    fontFamily: {
+                        "display": ["Be Vietnam Pro"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+    </style>
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-brand">🎬 Movie Recommender</div>
-        <div class="nav-links">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('popular_movies') }}">Popular</a>
-            <a href="{{ url_for('browse_movies') }}">Browse All</a>
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-primary text-3xl">movie_filter</span>
+                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white uppercase">Movie<span class="text-primary">Rec</span></span>
+                </div>
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="{{ url_for('index') }}" class="text-sm font-medium hover:text-primary transition-colors">Home</a>
+                    <a href="{{ url_for('popular_movies') }}" class="text-sm font-medium text-primary transition-colors">Popular</a>
+                    <a href="{{ url_for('browse_movies') }}" class="text-sm font-medium hover:text-primary transition-colors">Browse</a>
+                </div>
+            </div>
         </div>
     </nav>
-
-    <div class="container">
-        <header class="page-header">
-            <h1>🔥 Most Popular Movies</h1>
-            <p>Top rated movies by number of reviews</p>
-        </header>
-
-        <div class="popular-list">
+    
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-2">🔥 Most Popular Movies</h1>
+                <p class="text-slate-500 dark:text-slate-400 font-medium">Top rated movies by our community.</p>
+            </div>
+            <div class="text-slate-500 dark:text-slate-400 text-sm font-medium bg-slate-100 dark:bg-slate-900 px-4 py-2 rounded-full border border-slate-200 dark:border-slate-800">
+                Showing <span class="text-primary font-bold">{{ movies|length }}</span> movies
+            </div>
+        </div>
+        
+        <!-- Movies List - Same style as Trending Now -->
+        <div class="glass rounded-xl overflow-hidden">
             {% for movie in movies %}
-            <div class="popular-card">
-                <div class="popular-rank">#{{ loop.index }}</div>
-                <div class="popular-info">
-                    <h3>{{ movie.title }}</h3>
-                    <div class="popular-stats">
-                        <span class="rating">⭐ {{ movie.rating }}</span>
-                        <span class="count">{{ movie.num_ratings }} ratings</span>
+            <div class="flex items-center gap-4 p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+                    #{{ loop.index }}
+                </div>
+                <div class="flex-1 min-w-0 text-left">
+                    <h4 class="text-white font-semibold truncate">{{ movie.title }}</h4>
+                </div>
+                <div class="flex items-center gap-4 flex-shrink-0">
+                    <div class="flex items-center gap-1 text-primary">
+                        <span class="material-icons text-sm">star</span>
+                        <span class="font-bold">{{ movie.rating }}</span>
+                    </div>
+                    <div class="flex items-center gap-1 text-slate-400">
+                        <span class="material-icons text-sm">reviews</span>
+                        <span class="text-sm">{{ movie.num_ratings }}</span>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-
-        <div class="back-link">
-            <a href="{{ url_for('index') }}" class="btn-secondary">← Back to Home</a>
+        
+        <!-- Back Link -->
+        <div class="mt-12 flex justify-center">
+            <a href="{{ url_for('index') }}" class="flex items-center space-x-2 text-slate-400 hover:text-primary transition-colors">
+                <span class="material-icons">arrow_back</span>
+                <span>Back to Home</span>
+            </a>
         </div>
-    </div>
-
-    <footer>
-        <p>Movie Recommender System | Based on Item-Based Collaborative Filtering</p>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="mt-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-12">
+        <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                <span class="material-icons text-primary text-2xl">movie_filter</span>
+                <span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white uppercase">Movie<span class="text-primary">Rec</span></span>
+            </div>
+            <div class="text-slate-500 dark:text-slate-500 text-sm">
+@ 2026 MovieRec. All rights reserved.
+            </div>
+        </div>
     </footer>
 </body>
 </html>

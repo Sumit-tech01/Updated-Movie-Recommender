@@ -1,93 +1,119 @@
 """
 Movie Recommender System - Vercel Serverless API
 """
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
+import numpy as np
 import os
+import sys
 
 app = Flask(__name__)
 
-# Global variables
-_df = None
-_moviemat = None
-_ratings = None
-_data_loaded = False
+# Global cache for loaded data
+_DATA_CACHE = {}
 
-def load_data():
-    """Load data on startup"""
-    global _df, _moviemat, _ratings, _data_loaded
+def get_base_path():
+    """Get base path that works in Vercel and local"""
+    if os.environ.get('VERCEL'):
+        return '/var/task'
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def load_data_cached():
+    """Load data with global caching for cold start optimization"""
+    global _DATA_CACHE
     
-    if _data_loaded:
+    if 'initialized' in _DATA_CACHE:
         return True
     
     try:
-        # Get the root directory (where u.data and Movie_Id_Titles are)
-        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        base_path = get_base_path()
+        u_data_path = os.path.join(base_path, 'u.data')
+        movie_titles_path = os.path.join(base_path, 'Movie_Id_Titles')
         
-        # Load ratings
+        if not os.path.exists(u_data_path):
+            raise FileNotFoundError(f"u.data not found at {u_data_path}")
+        if not os.path.exists(movie_titles_path):
+            raise FileNotFoundError(f"Movie_Id_Titles not found at {movie_titles_path}")
+        
         columns_names = ['user_id', 'item_id', 'rating', 'timestamp']
-        _df = pd.read_csv(os.path.join(base_path, "u.data"), sep='\t', names=columns_names)
+        df = pd.read_csv(u_data_path, sep='\t', names=columns_names)
+        movie_titles = pd.read_csv(movie_titles_path)
         
-        # Load movie titles
-        movie_titles = pd.read_csv(os.path.join(base_path, 'Movie_Id_Titles'))
+        df = pd.merge(df, movie_titles, on='item_id')
         
-        # Merge
-        _df = pd.merge(_df, movie_titles, on='item_id')
+        ratings = pd.DataFrame(df.groupby('title')['rating'].mean())
+        ratings['num of ratings'] = df.groupby('title')['rating'].count()
         
-        # Create ratings summary
-        _ratings = pd.DataFrame(_df.groupby('title')['rating'].mean())
-        _ratings['num of ratings'] = _df.groupby('title')['rating'].count()
+        moviemat = df.pivot_table(index='user_id', columns='title', values='rating')
         
-        # Create pivot table
-        _moviemat = _df.pivot_table(index='user_id', columns='title', values='rating')
+        _DATA_CACHE['df'] = df
+        _DATA_CACHE['ratings'] = ratings
+        _DATA_CACHE['moviemat'] = moviemat
+        _DATA_CACHE['initialized'] = True
         
-        _data_loaded = True
         return True
     except Exception as e:
-        print(f"Error loading data: {e}")
+        print(f"Error loading data: {e}", file=sys.stderr)
         return False
 
+def get_ratings():
+    return _DATA_CACHE.get('ratings')
+
+def get_moviemat():
+    return _DATA_CACHE.get('moviemat')
+
 def get_similar_movies(movie_title, min_ratings=100):
-    """Find movies similar to the given movie"""
     try:
-        movie_ratings = _moviemat[movie_title]
-        similar = _moviemat.corrwith(movie_ratings)
+        moviemat = get_moviemat()
+        ratings = get_ratings()
+        
+        if moviemat is None or ratings is None:
+            return None
+        
+        movie_ratings = moviemat[movie_title]
+        similar = moviemat.corrwith(movie_ratings)
         
         corr = pd.DataFrame(similar, columns=['Correlation'])
         corr.dropna(inplace=True)
-        corr = corr.join(_ratings['num of ratings'])
+        corr = corr.join(ratings['num of ratings'])
         
         recommendations = corr[corr['num of ratings'] >= min_ratings]
         recommendations = recommendations.sort_values('Correlation', ascending=False)
         
         return recommendations
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error finding similar movies: {e}", file=sys.stderr)
         return None
 
 def get_recommendations_for_movie(movie_title, n=10):
-    """Get top N similar movies"""
     similar = get_similar_movies(movie_title)
     if similar is not None:
         return similar.head(n)
     return None
 
 def get_popular_movies(n=20):
-    """Get most popular movies"""
-    popular = _ratings.sort_values('num of ratings', ascending=False).head(n)
-    return popular
+    ratings = get_ratings()
+    if ratings is not None:
+        return ratings.sort_values('num of ratings', ascending=False).head(n)
+    return None
 
 def get_all_movies():
-    """Get list of all movies for dropdown"""
-    return sorted(_ratings.index.tolist())
+    ratings = get_ratings()
+    if ratings is not None:
+        return sorted(ratings.index.tolist())
+    return []
 
-# Load data when module loads
-load_data()
+# ============== ROUTES ==============
 
 @app.route('/')
 def index():
-    """Home page"""
+    if not load_data_cached():
+        return jsonify({'error': 'Failed to load movie data'}), 500
+    
     popular = get_popular_movies(10)
+    if popular is None:
+        return jsonify({'error': 'Failed to get popular movies'}), 500
+    
     popular_list = []
     for movie, row in popular.iterrows():
         popular_list.append({
@@ -95,21 +121,24 @@ def index():
             'rating': round(row['rating'], 2),
             'num_ratings': int(row['num of ratings'])
         })
+    
     return render_template('index.html', popular=popular_list, movies=get_all_movies())
 
 @app.route('/recommend', methods=['POST'])
 def recommend():
-    """Get recommendations based on movie selection"""
+    if not load_data_cached():
+        return jsonify({'error': 'Failed to load movie data'}), 500
+    
     movie = request.form.get('movie')
     n = int(request.form.get('n', 10))
     
     if not movie:
-        return render_template('error.html', message="Please select a movie")
+        return render_template('error.html', message="Please select a movie"), 400
     
     recommendations = get_recommendations_for_movie(movie, n)
     
     if recommendations is None or recommendations.empty:
-        return render_template('error.html', message="No recommendations found")
+        return render_template('error.html', message="No recommendations found"), 404
     
     rec_list = []
     for movie_title, row in recommendations.iterrows():
@@ -123,44 +152,21 @@ def recommend():
                          original_movie=movie, 
                          recommendations=rec_list)
 
-@app.route('/popular')
-def popular_movies():
-    """Show popular movies page"""
-    popular = get_popular_movies(30)
-    popular_list = []
-    for movie, row in popular.iterrows():
-        popular_list.append({
-            'title': movie,
-            'rating': round(row['rating'], 2),
-            'num_ratings': int(row['num of ratings'])
-        })
-    return render_template('popular.html', movies=popular_list)
-
-@app.route('/browse')
-def browse_movies():
-    """Browse all movies"""
-    movies = []
-    for movie, row in _ratings.iterrows():
-        movies.append({
-            'title': movie,
-            'rating': round(row['rating'], 2),
-            'num_ratings': int(row['num of ratings'])
-        })
-    return render_template('browse.html', movies=movies)
-
 @app.route('/api/recommend')
 def api_recommend():
-    """API endpoint for recommendations"""
+    if not load_data_cached():
+        return jsonify({'error': 'Failed to load movie data'}), 500
+    
     movie = request.args.get('movie')
     n = int(request.args.get('n', 10))
     
     if not movie:
-        return jsonify({'error': 'Please provide a movie name'})
+        return jsonify({'error': 'Please provide a movie name'}), 400
     
     recommendations = get_recommendations_for_movie(movie, n)
     
     if recommendations is None or recommendations.empty:
-        return jsonify({'error': 'No recommendations found'})
+        return jsonify({'error': 'No recommendations found'}), 404
     
     result = []
     for movie_title, row in recommendations.iterrows():
@@ -170,23 +176,57 @@ def api_recommend():
             'num_ratings': int(row['num of ratings'])
         })
     
-    return jsonify({
-        'movie': movie,
-        'recommendations': result
-    })
+    return jsonify({'movie': movie, 'recommendations': result})
 
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    """Serve static files"""
-    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return send_from_directory(os.path.join(base_path, 'static'), filename)
+@app.route('/popular')
+def popular_movies():
+    if not load_data_cached():
+        return jsonify({'error': 'Failed to load movie data'}), 500
+    
+    popular = get_popular_movies(30)
+    if popular is None:
+        return jsonify({'error': 'Failed to get popular movies'}), 500
+    
+    popular_list = []
+    for movie, row in popular.iterrows():
+        popular_list.append({
+            'title': movie,
+            'rating': round(row['rating'], 2),
+            'num_ratings': int(row['num of ratings'])
+        })
+    
+    return render_template('popular.html', movies=popular_list)
 
-# For local development
-if __name__ == '__main__':
-    print("\n" + "="*50)
-    print("MOVIE RECOMMENDER SYSTEM")
-    print("="*50)
-    print("\nServer running at: http://localhost:5000")
-    print("="*50 + "\n")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+@app.route('/browse')
+def browse_movies():
+    if not load_data_cached():
+        return jsonify({'error': 'Failed to load movie data'}), 500
+    
+    ratings = get_ratings()
+    if ratings is None:
+        return jsonify({'error': 'Failed to load movies'}), 500
+    
+    movies = []
+    for movie, row in ratings.iterrows():
+        movies.append({
+            'title': movie,
+            'rating': round(row['rating'], 2),
+            'num_ratings': int(row['num of ratings'])
+        })
+    
+    return render_template('browse.html', movies=movies)
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('error.html', message="Internal server error. Please try again."), 500
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('error.html', message="Page not found"), 404
+
+# ============== VERCEL HANDLER ==============
+
+def handler(request, context=None):
+    """Vercel serverless entrypoint"""
+    return app(request.environ, lambda status, headers: None)
 

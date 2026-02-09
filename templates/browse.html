@@ -1,48 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Movies - Movie Recommender</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Browse Movies - MovieRec</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols-Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f59f0a",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221c10",
+                    },
+                    fontFamily: {
+                        "display": ["Be Vietnam Pro"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Be Vietnam Pro', sans-serif; }
+    </style>
 </head>
-<body>
-    <nav class="navbar">
-        <div class="nav-brand">🎬 Movie Recommender</div>
-        <div class="nav-links">
-            <a href="{{ url_for('index') }}">Home</a>
-            <a href="{{ url_for('popular_movies') }}">Popular</a>
-            <a href="{{ url_for('browse_movies') }}">Browse All</a>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen font-display">
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-white/10">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <span class="material-icons text-primary text-3xl">movie_filter</span>
+                    <span class="text-xl font-bold tracking-tight text-white uppercase">Movie<span class="text-primary">Rec</span></span>
+                </div>
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="{{ url_for('index') }}" class="text-sm font-medium hover:text-primary transition-colors">Home</a>
+                    <a href="{{ url_for('popular_movies') }}" class="text-sm font-medium hover:text-primary transition-colors">Popular</a>
+                    <a href="{{ url_for('browse_movies') }}" class="text-sm font-medium text-primary transition-colors">Browse</a>
+                </div>
+            </div>
         </div>
-    </nav>
-
-    <div class="container">
-        <header class="page-header">
-            <h1>📚 Browse All Movies</h1>
-            <p>Complete movie database ({{ movies|length }} movies)</p>
-        </header>
-
-        <div class="browse-search">
-            <input type="text" id="movieSearch" placeholder="Search movies..." onkeyup="filterMovies()">
+    </header>
+    
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h1 class="text-4xl font-bold text-slate-900 dark:text-white mb-2">📚 Browse All Movies</h1>
+                <p class="text-slate-500 dark:text-slate-400 font-medium">Complete movie database ({{ movies|length }} movies)</p>
+            </div>
+            <!-- Search Box -->
+            <div class="relative">
+                <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" id="movieSearch" onkeyup="filterMovies()" 
+                    placeholder="Search movies..." 
+                    class="bg-slate-100 dark:bg-slate-800 border-none rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-primary text-slate-900 dark:text-white placeholder:text-slate-500">
+            </div>
         </div>
-
-        <div class="browse-list" id="browseList">
+        
+        <!-- Movies List - Same style as Trending Now -->
+        <div class="glass rounded-xl overflow-hidden" id="browseList">
             {% for movie in movies %}
-            <div class="browse-card" data-title="{{ movie.title.lower() }}">
-                <h3>{{ movie.title }}</h3>
-                <div class="browse-stats">
-                    <span class="rating">⭐ {{ movie.rating }}</span>
-                    <span class="count">{{ movie.num_ratings }} ratings</span>
+            {% set year = movie.title|regex_search %}
+            <div class="flex items-center gap-4 p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors browse-card" data-title="{{ movie.title.lower() }}">
+                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
+                    #{{ loop.index }}
+                </div>
+                <div class="flex-1 min-w-0 text-left">
+                    <h4 class="text-white font-semibold truncate">{{ movie.title }}</h4>
+                    {% if year %}
+                    <p class="text-xs text-slate-500">{{ year }}</p>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-4 flex-shrink-0">
+                    <div class="flex items-center gap-1 text-primary">
+                        <span class="material-icons text-sm">star</span>
+                        <span class="font-bold text-sm">{{ movie.rating }}</span>
+                    </div>
+                    <div class="flex items-center gap-1 text-slate-400">
+                        <span class="material-icons text-sm">reviews</span>
+                        <span class="text-sm">{{ movie.num_ratings }}</span>
+                    </div>
                 </div>
             </div>
             {% endfor %}
         </div>
-
-        <div class="back-link">
-            <a href="{{ url_for('index') }}" class="btn-secondary">← Back to Home</a>
+        
+        <!-- Back Link -->
+        <div class="mt-12 flex justify-center">
+            <a href="{{ url_for('index') }}" class="flex items-center space-x-2 text-slate-400 hover:text-primary transition-colors">
+                <span class="material-icons">arrow_back</span>
+                <span>Back to Home</span>
+            </a>
         </div>
-    </div>
-
+    </main>
+    
+    <!-- Search Script -->
     <script>
         function filterMovies() {
             const input = document.getElementById('movieSearch');
@@ -59,9 +119,18 @@
             }
         }
     </script>
-
-    <footer>
-        <p>Movie Recommender System | Based on Item-Based Collaborative Filtering</p>
+    
+    <!-- Footer -->
+    <footer class="mt-20 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-12">
+        <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                <span class="material-icons text-primary text-2xl">movie_filter</span>
+                <span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white uppercase">Movie<span class="text-primary">Rec</span></span>
+            </div>
+            <div class="text-slate-500 dark:text-slate-500 text-sm">
+@ 2026 MovieRec. All rights reserved.
+            </div>
+        </div>
     </footer>
 </body>
 </html>

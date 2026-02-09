@@ -1,12 +1,21 @@
 """
-Movie Recommender System - Flask Web Application
+Movie Recommender System - Unified Flask Web Application
+A collaborative filtering-based movie recommendation system
 """
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import pandas as pd
 import numpy as np
 import os
+import re
 
 app = Flask(__name__)
+
+# Custom Jinja filter for extracting year from movie title
+@app.template_filter('regex_search')
+def regex_search(text):
+    """Extract year from movie title like 'Movie Name (1995)'"""
+    match = re.search(r'\((\d{4})\)', str(text))
+    return match.group(1) if match else ''
 
 # Global variables to store loaded data
 _df = None
@@ -22,12 +31,15 @@ def load_data():
         return True
     
     try:
+        # Get base path for data files
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        
         # Load ratings
         columns_names = ['user_id', 'item_id', 'rating', 'timestamp']
-        _df = pd.read_csv("u.data", sep='\t', names=columns_names)
+        _df = pd.read_csv(os.path.join(base_path, "u.data"), sep='\t', names=columns_names)
         
         # Load movie titles
-        movie_titles = pd.read_csv('Movie_Id_Titles')
+        movie_titles = pd.read_csv(os.path.join(base_path, 'Movie_Id_Titles'))
         
         # Merge
         _df = pd.merge(_df, movie_titles, on='item_id')
@@ -40,14 +52,14 @@ def load_data():
         _moviemat = _df.pivot_table(index='user_id', columns='title', values='rating')
         
         _data_loaded = True
-        print("Data loaded successfully!")
+        print("✓ Data loaded successfully!")
         return True
     except Exception as e:
-        print(f"Error loading data: {e}")
+        print(f"✗ Error loading data: {e}")
         return False
 
 def get_similar_movies(movie_title, min_ratings=100):
-    """Find movies similar to the given movie"""
+    """Find movies similar to the given movie using correlation"""
     try:
         movie_ratings = _moviemat[movie_title]
         similar = _moviemat.corrwith(movie_ratings)
@@ -72,7 +84,7 @@ def get_recommendations_for_movie(movie_title, n=10):
     return None
 
 def get_popular_movies(n=20):
-    """Get most popular movies"""
+    """Get most popular movies sorted by number of ratings"""
     popular = _ratings.sort_values('num of ratings', ascending=False).head(n)
     return popular
 
@@ -80,10 +92,11 @@ def get_all_movies():
     """Get list of all movies for dropdown"""
     return sorted(_ratings.index.tolist())
 
-# Routes
+# ============== ROUTES ==============
+
 @app.route('/')
 def index():
-    """Home page - ensure data is loaded"""
+    """Home page with popular movies"""
     if not _data_loaded:
         load_data()
     
@@ -128,7 +141,7 @@ def recommend():
 
 @app.route('/api/recommend')
 def api_recommend():
-    """API endpoint for recommendations"""
+    """API endpoint for recommendations (JSON)"""
     if not _data_loaded:
         load_data()
     
@@ -187,23 +200,37 @@ def browse_movies():
         })
     return render_template('browse.html', movies=movies)
 
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """Serve static files"""
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(os.path.join(base_path, 'static'), filename)
+
+# ============== MAIN ==============
+
 if __name__ == '__main__':
-    # Ensure templates directory exists
-    if not os.path.exists('templates'):
-        os.makedirs('templates')
+    # Ensure directories exist
+    for directory in ['templates', 'static']:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
     
-    # Ensure static directory exists
-    if not os.path.exists('static'):
-        os.makedirs('static')
+    print("=" * 50)
+    print("   MOVIE RECOMMENDER SYSTEM")
+    print("=" * 50)
     
     # Load data before starting
-    print("=" * 50)
-    print("MOVIE RECOMMENDER SYSTEM")
-    print("=" * 50)
-    load_data()
-    
-    print("\nServer running at: http://127.0.0.1:8000")
-    print("=" * 50 + "\n")
-    
-    # Run without debug mode to remove warnings
-    app.run(host='127.0.0.1', port=8000, debug=False, use_reloader=False)
+    if load_data():
+        print(f"\n✓ Loaded {_ratings.shape[0]} movies")
+        print(f"✓ Loaded {_df['user_id'].nunique()} users")
+        print(f"✓ Loaded {_df.shape[0]} ratings")
+        
+        print("\n" + "-" * 50)
+        print("Server running at: http://127.0.0.1:8000")
+        print("-" * 50 + "\n")
+        
+        # Run without debug mode to remove warnings
+        app.run(host='127.0.0.1', port=8000, debug=False, use_reloader=False)
+    else:
+        print("\n✗ Failed to load data. Please check that data files exist.")
+        print("  Required files: u.data, Movie_Id_Titles")
+
