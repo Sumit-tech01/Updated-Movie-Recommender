@@ -52,10 +52,10 @@ def load_data():
         _moviemat = _df.pivot_table(index='user_id', columns='title', values='rating')
         
         _data_loaded = True
-        print("✓ Data loaded successfully!")
+        print("Data loaded successfully!")
         return True
     except Exception as e:
-        print(f"✗ Error loading data: {e}")
+        print(f"Error loading data: {e}")
         return False
 
 def get_similar_movies(movie_title, min_ratings=100):
@@ -220,17 +220,17 @@ if __name__ == '__main__':
     
     # Load data before starting
     if load_data():
-        print(f"\n✓ Loaded {_ratings.shape[0]} movies")
-        print(f"✓ Loaded {_df['user_id'].nunique()} users")
-        print(f"✓ Loaded {_df.shape[0]} ratings")
+        print(f"\nLoaded {_ratings.shape[0]} movies")
+        print(f"Loaded {_df['user_id'].nunique()} users")
+        print(f"Loaded {_df.shape[0]} ratings")
         
         print("\n" + "-" * 50)
-        print("Server running at: http://127.0.0.1:8000")
+        print("Server running at: http://0.0.0.0:10000")
         print("-" * 50 + "\n")
         
         # Run without debug mode to remove warnings
-        app.run(host='127.0.0.1', port=8000, debug=False, use_reloader=False)
+        app.run(host="0.0.0.0", port=10000, debug=False, use_reloader=False)
     else:
-        print("\n✗ Failed to load data. Please check that data files exist.")
+        print("\nFailed to load data. Please check that data files exist.")
         print("  Required files: u.data, Movie_Id_Titles")
 

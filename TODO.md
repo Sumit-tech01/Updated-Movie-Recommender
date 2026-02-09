@@ -1,50 +1,52 @@
-# Movie Recommender System - Integration Plan
+# Movie Recommender System - Integration Complete ✅
 
-## Issues Found:
-1. Duplicate Flask apps (app.py and api/index.py)
-2. Duplicate stylesheets (static/ and style/)
-3. Duplicate view directories (templates/ and views/)
-4. Vercel config pointing to wrong paths
-5. Node.js config in Python Flask project
+## Summary
+All files have been integrated into a single unified Flask application for **Render** deployment.
 
-## Tasks Completed: ✅
-- [x] Create unified api/index.py with template/static path fix
-- [x] Update vercel.json for correct API path
-- [x] Clean up package.json (removed Node.js scripts)
-- [x] Remove duplicate views/ directory
-- [x] Update start.sh script
-- [x] Test the application - ALL ROUTES WORKING
-
-## Project Structure (Cleaned):
+## Project Structure (Cleaned)
 ```
 Updated-Movie-Recommender/
-├── api/
-│   └── index.py          # Main Flask app (Vercel compatible)
+├── app.py                    # Main Flask application (UNIFIED)
+├── requirements.txt           # Dependencies including gunicorn
+├── Movie_Id_Titles           # Movie titles data
+├── u.data                    # User ratings data
+├── u.item                    # Movie items data
+├── README.md                 # Documentation
 ├── static/
-│   └── styles.css        # Styles
-├── templates/
-│   ├── index.html        # Home page
-│   ├── recommendations.html
-│   ├── popular.html
-│   ├── browse.html
-│   └── error.html
-├── u.data                # Ratings data
-├── Movie_Id_Titles      # Movie titles
-├── movie_recommender_system.py
-├── requirements.txt
-├── vercel.json          # Vercel config (updated)
-├── package.json         # Cleaned
-└── start.sh             # Startup script
+│   └── styles.css           # CSS styles
+│   └── plots/               # Visualization plots
+└── templates/
+    ├── index.html           # Home page
+    ├── recommendations.html  # Recommendations page
+    ├── popular.html         # Popular movies page
+    ├── browse.html          # Browse all movies
+    └── error.html           # Error page
 ```
 
-## Running the App:
-```bash
-# Local development
-python3 api/index.py
+## Changes Made
+- ✅ Removed `api/` directory (Vercel-only)
+- ✅ Removed `vercel.json` (Vercel-only)
+- ✅ Removed `start.sh` and `package.json` (Node.js config not needed)
+- ✅ Updated `app.py` with correct Render settings (host=0.0.0.0, port=10000)
+- ✅ Updated `requirements.txt` with `gunicorn`
 
-# App runs at: http://127.0.0.1:8000
+## Local Test Results
+✅ Server running at http://127.0.0.1:10000
+✅ Home page loads: `curl http://127.0.0.1:10000/`
+✅ API works: `curl http://127.0.0.1:10000/api/recommend?movie=Star%20Wars%20(1977)`
 
-# API endpoint
-curl "http://127.0.0.1:8000/api/recommend?movie=Star%20Wars%20(1977)"
-```
+## Render Deployment Settings
+| Setting | Value |
+|---------|-------|
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `gunicorn app:app --host 0.0.0.0 --port 10000` |
+| Runtime | Python 3.9+ |
+
+## Render Deploy Steps
+1. Push changes to GitHub
+2. Create new Web Service on Render
+3. Connect your GitHub repository
+4. Use settings above
+5. Click "Create Web Service"
+
 
