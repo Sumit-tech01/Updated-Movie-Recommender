@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommender System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🎬 Movie Recommender</div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('popular_movies') }}">Popular</a>
+            <a href="{{ url_for('browse_movies') }}">Browse All</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="hero">
+            <h1>🎬 Discover Your Next Favorite Movie</h1>
+            <p>Get personalized movie recommendations based on what you love!</p>
+        </header>
+
+        <section class="search-section">
+            <h2>Find Similar Movies</h2>
+            <form action="{{ url_for('recommend') }}" method="POST" class="search-form">
+                <div class="form-group">
+                    <label for="movie">Select a movie you like:</label>
+                    <select name="movie" id="movie" required>
+                        <option value="">-- Choose a Movie --</option>
+                        {% for movie in movies %}
+                        <option value="{{ movie }}">{{ movie }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="n">Number of recommendations:</label>
+                    <select name="n" id="n">
+                        <option value="5">5 movies</option>
+                        <option value="10" selected>10 movies</option>
+                        <option value="15">15 movies</option>
+                        <option value="20">20 movies</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Get Recommendations</button>
+            </form>
+        </section>
+
+        <section class="popular-section">
+            <h2>🔥 Most Popular Movies</h2>
+            <div class="movie-grid">
+                {% for movie in popular %}
+                <div class="movie-card">
+                    <h3>{{ movie.title }}</h3>
+                    <div class="movie-stats">
+                        <span class="rating">⭐ {{ movie.rating }}</span>
+                        <span class="count">{{ movie.num_ratings }} ratings</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="info-section">
+            <h2>How It Works</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="icon">📊</div>
+                    <h3>Analyze</h3>
+                    <p>We analyze ratings from thousands of users to find patterns.</p>
+                </div>
+                <div class="info-card">
+                    <div class="icon">🔗</div>
+                    <h3>Correlate</h3>
+                    <p>We find movies that are frequently enjoyed together.</p>
+                </div>
+                <div class="info-card">
+                    <div class="icon">🎯</div>
+                    <h3>Recommend</h3>
+                    <p>You get personalized recommendations instantly!</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Movie Recommender System | Based on Item-Based Collaborative Filtering</p>
+    </footer>
+</body>
+</html>
+

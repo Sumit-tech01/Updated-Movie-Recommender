@@ -1,0 +1,33 @@
+{
+  "name": "movie-recommender-system",
+  "version": "1.0.0",
+  "description": "A web-based movie recommendation system using Flask",
+  "scripts": {
+    "start": "python3 app.py",
+    "dev": "python3 app.py",
+    "dev:watch": "python3 app.py",
+    "test": "python3 movie_recommender_system.py",
+    "analyze": "python3 movie_recommender_system.py",
+    "setup": "pip install -r requirements.txt",
+    "install:all": "npm install && pip install -r requirements.txt",
+    "server": "python3 app.py"
+  },
+  "keywords": [
+    "movie",
+    "recommender",
+    "flask",
+    "python",
+    "machine-learning"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/example/movie-recommender-system/issues"
+  },
+  "homepage": "https://github.com/example/movie-recommender-system#readme",
+  "engines": {
+    "node": ">=14.0.0",
+    "python": ">=3.7.0"
+  }
+}
+

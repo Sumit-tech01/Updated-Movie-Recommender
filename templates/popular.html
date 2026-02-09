@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popular Movies - Movie Recommender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🎬 Movie Recommender</div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('popular_movies') }}">Popular</a>
+            <a href="{{ url_for('browse_movies') }}">Browse All</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="page-header">
+            <h1>🔥 Most Popular Movies</h1>
+            <p>Top rated movies by number of reviews</p>
+        </header>
+
+        <div class="popular-list">
+            {% for movie in movies %}
+            <div class="popular-card">
+                <div class="popular-rank">#{{ loop.index }}</div>
+                <div class="popular-info">
+                    <h3>{{ movie.title }}</h3>
+                    <div class="popular-stats">
+                        <span class="rating">⭐ {{ movie.rating }}</span>
+                        <span class="count">{{ movie.num_ratings }} ratings</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="back-link">
+            <a href="{{ url_for('index') }}" class="btn-secondary">← Back to Home</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>Movie Recommender System | Based on Item-Based Collaborative Filtering</p>
+    </footer>
+</body>
+</html>
+

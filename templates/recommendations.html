@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendations - Movie Recommender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🎬 Movie Recommender</div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('popular_movies') }}">Popular</a>
+            <a href="{{ url_for('browse_movies') }}">Browse All</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="page-header">
+            <h1>Movies Similar to "{{ original_movie }}"</h1>
+            <p>Based on user rating patterns, here are movies you might enjoy:</p>
+        </header>
+
+        {% if recommendations %}
+        <div class="recommendations-list">
+            {% for rec in recommendations %}
+            <div class="rec-card">
+                <div class="rec-rank">#{{ loop.index }}</div>
+                <div class="rec-info">
+                    <h3>{{ rec.title }}</h3>
+                    <div class="rec-stats">
+                        <span class="correlation">Similarity: {{ rec.correlation }}</span>
+                        <span class="count">{{ rec.num_ratings }} ratings</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-results">
+            <p>No recommendations found. Try selecting a different movie.</p>
+            <a href="{{ url_for('index') }}" class="btn-primary">Back to Home</a>
+        </div>
+        {% endif %}
+
+        <div class="back-link">
+            <a href="{{ url_for('index') }}" class="btn-secondary">← Get More Recommendations</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>Movie Recommender System | Based on Item-Based Collaborative Filtering</p>
+    </footer>
+</body>
+</html>
+

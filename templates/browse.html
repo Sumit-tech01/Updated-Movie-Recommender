@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Movies - Movie Recommender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🎬 Movie Recommender</div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('popular_movies') }}">Popular</a>
+            <a href="{{ url_for('browse_movies') }}">Browse All</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header class="page-header">
+            <h1>📚 Browse All Movies</h1>
+            <p>Complete movie database ({{ movies|length }} movies)</p>
+        </header>
+
+        <div class="browse-search">
+            <input type="text" id="movieSearch" placeholder="Search movies..." onkeyup="filterMovies()">
+        </div>
+
+        <div class="browse-list" id="browseList">
+            {% for movie in movies %}
+            <div class="browse-card" data-title="{{ movie.title.lower() }}">
+                <h3>{{ movie.title }}</h3>
+                <div class="browse-stats">
+                    <span class="rating">⭐ {{ movie.rating }}</span>
+                    <span class="count">{{ movie.num_ratings }} ratings</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="back-link">
+            <a href="{{ url_for('index') }}" class="btn-secondary">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        function filterMovies() {
+            const input = document.getElementById('movieSearch');
+            const filter = input.value.toLowerCase();
+            const cards = document.getElementsByClassName('browse-card');
+            
+            for (let i = 0; i < cards.length; i++) {
+                const title = cards[i].getAttribute('data-title');
+                if (title.includes(filter)) {
+                    cards[i].style.display = '';
+                } else {
+                    cards[i].style.display = 'none';
+                }
+            }
+        }
+    </script>
+
+    <footer>
+        <p>Movie Recommender System | Based on Item-Based Collaborative Filtering</p>
+    </footer>
+</body>
+</html>
+

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Movie Recommender</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🎬 Movie Recommender</div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('popular_movies') }}">Popular</a>
+            <a href="{{ url_for('browse_movies') }}">Browse All</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="error-page">
+            <div class="error-icon">⚠️</div>
+            <h1>Oops! Something went wrong</h1>
+            <p>{{ message }}</p>
+            <a href="{{ url_for('index') }}" class="btn-primary">Back to Home</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>Movie Recommender System</p>
+    </footer>
+</body>
+</html>
+
